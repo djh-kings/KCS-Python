@@ -80,6 +80,8 @@
   .sub-code-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.5); }
   .btn-run-code { background: var(--orange); color: var(--blue); border: none; border-radius: 3px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: var(--font); }
   .sub-code { padding: 14px; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; color: var(--text); background: var(--code-bg); white-space: pre-wrap; max-height: 200px; overflow-y: auto; }
+  .sub-canvas-wrap { display: none; background: #fff; border-bottom: 1px solid var(--border); padding: 10px; text-align: center; }
+  .sub-canvas-wrap.visible { display: block; }
   .sub-terminal { background: var(--terminal-bg); padding: 10px 14px; font-family: var(--font-mono); font-size: 12px; color: var(--terminal-text); min-height: 48px; max-height: 100px; overflow-y: auto; white-space: pre-wrap; }
   .sub-terminal .error { color: #ff6b6b; }
   .sub-terminal-input-row { display: none; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(255,255,255,0.05); border-top: 1px solid rgba(255,255,255,0.08); }
@@ -265,6 +267,9 @@ function buildSubCard(sub) {
           <button class="btn-run-code" onclick="teacherRunCode('${ideId}')">▶ Run</button>
         </div>
         <div class="sub-code" id="${ideId}_code">${escHtml(sub.code)}</div>
+        <div class="sub-canvas-wrap" id="${ideId}_canvaswrap">
+          <canvas id="${ideId}_canvas" width="360" height="260" style="border:1px solid #d0dbe8;border-radius:3px;max-width:100%;"></canvas>
+        </div>
         <div class="sub-terminal" id="${ideId}_output"></div>
         <div class="sub-terminal-input-row" id="${ideId}_inputrow">
           <input class="sub-terminal-input" id="${ideId}_inputfield" placeholder="Input…" onkeydown="if(event.key==='Enter')teacherSubmitInput('${ideId}')">
@@ -294,6 +299,15 @@ function teacherRunCode(ideId) {
   inputRow.classList.remove('visible');
 
   const doRun = () => {
+    const canvasWrap = document.getElementById(ideId + '_canvaswrap');
+    const canvas     = document.getElementById(ideId + '_canvas');
+    const usesTurtle = /import\s+turtle|from\s+turtle/.test(code);
+    if (usesTurtle) {
+      canvasWrap.classList.add('visible');
+      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    } else {
+      canvasWrap.classList.remove('visible');
+    }
     function outf(text) { output.insertAdjacentText('beforeend', text); output.scrollTop = output.scrollHeight; }
     function builtinRead(x) {
       if (Sk.builtinFiles?.files[x] === undefined) throw "File not found: '" + x + "'";
@@ -307,7 +321,11 @@ function teacherRunCode(ideId) {
         inputFld.focus();
       });
     }
-    Sk.configure({ output: outf, read: builtinRead, __future__: Sk.python3, inputfun: handleInput, inputfunTakesPrompt: true });
+    Sk.configure({
+      output: outf, read: builtinRead, __future__: Sk.python3,
+      inputfun: handleInput, inputfunTakesPrompt: true,
+      TurtleGraphics: { target: canvas, width: 360, height: 260 }
+    });
     Sk.misceval.asyncToPromise(() => Sk.importMainWithBody('<stdin>', false, code, true))
       .then(() => inputRow.classList.remove('visible'))
       .catch(e => {

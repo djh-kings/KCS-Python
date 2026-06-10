@@ -79,7 +79,11 @@
   .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
   .ide-editor { width: 100%; min-height: 280px; padding: 16px; font-family: var(--font-mono); font-size: 14px; line-height: 1.6; border: none; border-bottom: 1px solid var(--border); outline: none; resize: vertical; color: var(--text); background: var(--code-bg); tab-size: 4; }
   .ide-editor:focus { background: #e8eef5; }
-  .ide-terminal { background: var(--terminal-bg); min-height: 120px; max-height: 260px; overflow-y: auto; flex-shrink: 0; }
+  .ide-canvas-wrap { display: none; background: #fff; border-bottom: 1px solid var(--border); padding: 12px; text-align: center; }
+  .ide-canvas-wrap.visible { display: block; }
+  .ide-canvas-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #5a6a7a; margin-bottom: 8px; text-align: left; }
+  .ide-canvas { border: 1px solid var(--border); border-radius: 4px; background: #fff; max-width: 100%; }
+  .ide-terminal { background: var(--terminal-bg); min-height: 80px; max-height: 200px; overflow-y: auto; flex-shrink: 0; }
   .ide-terminal-header { padding: 7px 16px; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.3); }
   .ide-output { padding: 14px 16px; font-family: var(--font-mono); font-size: 13.5px; line-height: 1.7; color: var(--terminal-text); white-space: pre-wrap; word-break: break-word; min-height: 60px; }
   .ide-output .error  { color: #ff6b6b; }
@@ -276,6 +280,10 @@ function buildIde(ideId, starterCode, materialSlug, materialName) {
         </div>
       </div>
       <textarea class="ide-editor" id="${ideId}_editor" spellcheck="false" onkeydown="handleTab(event)">${escHtml(starterCode||'')}</textarea>
+      <div class="ide-canvas-wrap" id="${ideId}_canvaswrap">
+        <div class="ide-canvas-label">Turtle graphics</div>
+        <canvas class="ide-canvas" id="${ideId}_canvas" width="400" height="300"></canvas>
+      </div>
       <div class="ide-terminal">
         <div class="ide-terminal-header">Output</div>
         <div class="ide-output" id="${ideId}_output"></div>
@@ -313,14 +321,27 @@ function runCode(ideId) {
 }
 
 function _execCode(ideId) {
-  const editor   = document.getElementById(ideId + '_editor');
-  const output   = document.getElementById(ideId + '_output');
-  const inputRow = document.getElementById(ideId + '_inputrow');
-  const inputFld = document.getElementById(ideId + '_inputfield');
+  const editor      = document.getElementById(ideId + '_editor');
+  const output      = document.getElementById(ideId + '_output');
+  const inputRow    = document.getElementById(ideId + '_inputrow');
+  const inputFld    = document.getElementById(ideId + '_inputfield');
+  const canvasWrap  = document.getElementById(ideId + '_canvaswrap');
+  const canvas      = document.getElementById(ideId + '_canvas');
 
   output.innerHTML = '';
   inputRow.classList.remove('visible');
   inputFld.value = '';
+
+  // Show canvas only if code uses turtle
+  const usesTurtle = /import\s+turtle|from\s+turtle/.test(editor.value);
+  if (usesTurtle) {
+    canvasWrap.classList.add('visible');
+    // Clear the canvas
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  } else {
+    canvasWrap.classList.remove('visible');
+  }
 
   function outf(text) {
     const span = document.createElement('span');
@@ -343,7 +364,15 @@ function _execCode(ideId) {
     });
   }
 
-  Sk.configure({ output: outf, read: builtinRead, __future__: Sk.python3, inputfun: handleInput, inputfunTakesPrompt: true });
+  Sk.configure({
+    output: outf,
+    read: builtinRead,
+    __future__: Sk.python3,
+    inputfun: handleInput,
+    inputfunTakesPrompt: true,
+    __imgPath: '',
+    TurtleGraphics: { target: canvas, width: 400, height: 300 }
+  });
 
   Sk.misceval.asyncToPromise(() =>
     Sk.importMainWithBody('<stdin>', false, editor.value, true)
