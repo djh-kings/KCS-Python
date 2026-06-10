@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KCS – Teacher Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue:        #0A3D62;
+    --blue-dark:   #072d48;
+    --blue-mid:    #1a5276;
+    --orange:      #F5A623;
+    --orange-dark: #d4891a;
+    --white:       #ffffff;
+    --bg:          #f0f4f8;
+    --text:        #1a1a2e;
+    --border:      #d0dbe8;
+    --card-bg:     #ffffff;
+    --code-bg:     #eef2f7;
+    --terminal-bg: #0d1b2a;
+    --terminal-text: #e8f4e8;
+    --green:       #3B6D11;
+    --green-bg:    #eaf3de;
+    --font:        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono:   "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; font-size: 15px; }
+
+  /* ── Login ── */
+  .login-wrap { flex: 1; display: flex; align-items: center; justify-content: center; }
+  .login-card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 36px 32px; width: 320px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+  .login-logo { background: var(--blue); color: var(--orange); font-weight: 800; font-size: 14px; padding: 5px 11px; border-radius: 4px; display: inline-block; margin-bottom: 16px; }
+  .login-title { font-size: 20px; font-weight: 700; color: var(--blue); margin-bottom: 6px; }
+  .login-sub { font-size: 13px; color: #5a6a7a; margin-bottom: 20px; }
+  .login-input { width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; font-size: 15px; font-family: var(--font); outline: none; color: var(--text); margin-bottom: 12px; }
+  .login-input:focus { border-color: var(--blue); }
+  .login-btn { width: 100%; background: var(--orange); color: var(--blue); border: none; border-radius: 6px; padding: 11px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: var(--font); }
+  .login-btn:hover { background: var(--orange-dark); }
+  .login-error { font-size: 13px; color: #a32d2d; margin-top: 8px; display: none; }
+
+  /* ── Dashboard ── */
+  .topbar { background: var(--blue); color: var(--white); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 60px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+  .topbar-left { display: flex; align-items: center; gap: 14px; }
+  .topbar-logo { background: var(--orange); color: var(--blue); font-weight: 800; font-size: 13px; padding: 4px 10px; border-radius: 4px; }
+  .topbar-title { font-size: 16px; font-weight: 600; }
+  .topbar-right { font-size: 12px; color: rgba(255,255,255,0.5); }
+  .btn-refresh { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 5px 12px; font-size: 12px; cursor: pointer; font-family: var(--font); }
+  .btn-refresh:hover { background: rgba(255,255,255,0.2); }
+
+  .dashboard { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── Sidebar ── */
+  .sidebar { width: 240px; flex-shrink: 0; background: var(--blue); overflow-y: auto; }
+  .sb-label { padding: 16px 16px 6px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.4); }
+  .sb-item { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; background: none; border: none; padding: 10px 16px 10px 22px; font-size: 13px; color: rgba(255,255,255,0.7); cursor: pointer; border-left: 3px solid transparent; font-family: var(--font); }
+  .sb-item:hover { background: rgba(255,255,255,0.07); color: var(--white); }
+  .sb-item.active { background: rgba(255,255,255,0.1); color: var(--white); border-left-color: var(--orange); font-weight: 600; }
+  .sb-badge { background: var(--orange); color: var(--blue); font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 8px; }
+  .sb-badge.done { background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); }
+
+  /* ── Main ── */
+  .main { flex: 1; overflow-y: auto; padding: 28px 36px; }
+  .main-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid var(--border); }
+  .main-title { font-size: 22px; font-weight: 700; color: var(--blue); }
+  .main-meta  { font-size: 13px; color: #5a6a7a; }
+
+  /* ── Submission card ── */
+  .sub-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px; overflow: hidden; box-shadow: 0 1px 4px rgba(10,61,98,0.05); }
+  .sub-header { padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: #f7f9fb; }
+  .sub-header-left { display: flex; align-items: center; gap: 10px; }
+  .sub-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .sub-dot.new  { background: var(--orange); }
+  .sub-dot.done { background: #639922; }
+  .sub-name { font-size: 15px; font-weight: 600; color: var(--blue); }
+  .sub-time { font-size: 12px; color: #5a6a7a; }
+  .sub-body { display: grid; grid-template-columns: 1fr 1fr; }
+  .sub-code-wrap { border-right: 1px solid var(--border); }
+  .sub-code-header { padding: 8px 14px; background: var(--blue); display: flex; align-items: center; justify-content: space-between; }
+  .sub-code-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+  .btn-run-code { background: var(--orange); color: var(--blue); border: none; border-radius: 3px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: var(--font); }
+  .sub-code { padding: 14px; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; color: var(--text); background: var(--code-bg); white-space: pre-wrap; max-height: 200px; overflow-y: auto; }
+  .sub-terminal { background: var(--terminal-bg); padding: 10px 14px; font-family: var(--font-mono); font-size: 12px; color: var(--terminal-text); min-height: 48px; max-height: 100px; overflow-y: auto; white-space: pre-wrap; }
+  .sub-terminal .error { color: #ff6b6b; }
+  .sub-terminal-input-row { display: none; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(255,255,255,0.05); border-top: 1px solid rgba(255,255,255,0.08); }
+  .sub-terminal-input-row.visible { display: flex; }
+  .sub-terminal-input { flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; padding: 4px 8px; font-family: var(--font-mono); font-size: 12px; color: var(--white); outline: none; }
+  .btn-enter { background: var(--orange); color: var(--blue); border: none; border-radius: 3px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; }
+  .sub-feedback-wrap { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .sub-fb-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--orange-dark); }
+  .sub-fb-textarea { width: 100%; border: 1px solid var(--border); border-radius: 5px; padding: 10px 12px; font-size: 13px; font-family: var(--font); line-height: 1.5; resize: vertical; min-height: 90px; color: var(--text); outline: none; }
+  .sub-fb-textarea:focus { border-color: var(--blue); }
+  .btn-save { background: var(--blue); color: var(--white); border: none; border-radius: 5px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); align-self: flex-start; }
+  .btn-save:hover { background: var(--blue-mid); }
+  .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+  .fb-saved { font-size: 12px; color: var(--green); display: none; }
+  .empty-state { text-align: center; padding: 60px 20px; color: #5a6a7a; font-size: 15px; }
+</style>
+</head>
+<body>
+
+<!-- Login screen -->
+<div class="login-wrap" id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">KCS</div>
+    <div class="login-title">Teacher Dashboard</div>
+    <div class="login-sub">Year 8 Adventure Game</div>
+    <input class="login-input" id="pass-input" type="password" placeholder="Passphrase" onkeydown="if(event.key==='Enter')checkPass()">
+    <button class="login-btn" onclick="checkPass()">Sign in</button>
+    <div class="login-error" id="login-error">Incorrect passphrase.</div>
+  </div>
+</div>
+
+<!-- Dashboard (hidden until login) -->
+<div id="dashboard-wrap" style="display:none;flex-direction:column;height:100vh;">
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-logo">KCS</span>
+      <span class="topbar-title">Teacher Dashboard</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="btn-refresh" onclick="loadSubmissions()">↻ Refresh</button>
+      <span class="topbar-right">Mr Haxton</span>
+    </div>
+  </header>
+  <div class="dashboard">
+    <nav class="sidebar" id="t-sidebar"></nav>
+    <main class="main" id="t-main">
+      <div class="empty-state">Select an assignment to view submissions.</div>
+    </main>
+  </div>
+</div>
+
+<script src="course.js"></script>
+<script>
+const SUPABASE_URL = 'https://masbfjxtvehjpjjiaxlo.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_ZBkDxp7bxXu7A3Ip_Z1kcw_7-48Pq0w';
+const PASSPHRASE   = 'CompSciKCS';
+
+let allSubmissions = [];
+let activeMaterial = null;
+let skulptLoaded   = false;
+
+// ── Auth ───────────────────────────────────────────────────────────────────
+function checkPass() {
+  const val = document.getElementById('pass-input').value;
+  if (val === PASSPHRASE) {
+    document.getElementById('login-screen').style.display = 'none';
+    const d = document.getElementById('dashboard-wrap');
+    d.style.display = 'flex';
+    buildSidebar();
+    loadSubmissions();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
+
+// ── Sidebar from course.json ───────────────────────────────────────────────
+function buildSidebar() {
+  const sidebar = document.getElementById('t-sidebar');
+  sidebar.innerHTML = '';
+  COURSE_DATA.lessons.forEach(lesson => {
+    const sec = document.createElement('div');
+    sec.className = 'sb-label';
+    sec.textContent = lesson.name;
+    sidebar.appendChild(sec);
+    lesson.materials.filter(m => m.type === 'assignment').forEach(material => {
+      const btn = document.createElement('button');
+      btn.className = 'sb-item';
+      btn.id = 'sbtn_' + material.slug;
+      btn.innerHTML = `<span>${material.name}</span><span class="sb-badge done" id="badge_${material.slug}">0</span>`;
+      btn.addEventListener('click', () => showMaterial(material, btn));
+      sidebar.appendChild(btn);
+    });
+  });
+}
+
+// ── Load submissions ───────────────────────────────────────────────────────
+async function loadSubmissions() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/submissions?order=submitted_at.desc`,
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+    );
+    allSubmissions = await res.json();
+
+    // Update badges
+    COURSE_DATA.lessons.forEach(lesson => {
+      lesson.materials.filter(m => m.type === 'assignment').forEach(material => {
+        const subs  = allSubmissions.filter(s => s.material_slug === material.slug);
+        const badge = document.getElementById('badge_' + material.slug);
+        if (badge) {
+          badge.textContent = subs.length;
+          const pending = subs.filter(s => !s.feedback).length;
+          badge.className = 'sb-badge' + (pending > 0 ? '' : ' done');
+        }
+      });
+    });
+
+    // Re-render current view
+    if (activeMaterial) {
+      const btn = document.getElementById('sbtn_' + activeMaterial.slug);
+      showMaterial(activeMaterial, btn);
+    }
+  } catch(e) {
+    console.error('Failed to load submissions:', e);
+  }
+}
+
+// ── Show material submissions ──────────────────────────────────────────────
+function showMaterial(material, btn) {
+  activeMaterial = material;
+  document.querySelectorAll('.sb-item').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const subs = allSubmissions.filter(s => s.material_slug === material.slug);
+  const pending = subs.filter(s => !s.feedback).length;
+
+  const main = document.getElementById('t-main');
+  if (!subs.length) {
+    main.innerHTML = `
+      <div class="main-header">
+        <div class="main-title">${material.name}</div>
+        <div class="main-meta">No submissions yet</div>
+      </div>
+      <div class="empty-state">No submissions yet for this assignment.</div>`;
+    return;
+  }
+
+  main.innerHTML = `
+    <div class="main-header">
+      <div class="main-title">${material.name}</div>
+      <div class="main-meta">${subs.length} submission${subs.length!==1?'s':''} · ${pending} need${pending===1?'s':''} feedback</div>
+    </div>
+    <div id="sub-list"></div>`;
+
+  const list = document.getElementById('sub-list');
+  subs.forEach(sub => { list.appendChild(buildSubCard(sub)); });
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function buildSubCard(sub) {
+  const card = document.createElement('div');
+  card.className = 'sub-card';
+  card.id = 'subcard_' + sub.id;
+  const hasFeedback = !!sub.feedback;
+  const time = new Date(sub.submitted_at).toLocaleString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+  const ideId = 'teacher_ide_' + sub.id.replace(/-/g,'_');
+
+  card.innerHTML = `
+    <div class="sub-header">
+      <div class="sub-header-left">
+        <div class="sub-dot ${hasFeedback?'done':'new'}"></div>
+        <span class="sub-name">${escHtml(sub.student_name)}</span>
+      </div>
+      <span class="sub-time">${time}</span>
+    </div>
+    <div class="sub-body">
+      <div class="sub-code-wrap">
+        <div class="sub-code-header">
+          <span class="sub-code-label">Code</span>
+          <button class="btn-run-code" onclick="teacherRunCode('${ideId}')">▶ Run</button>
+        </div>
+        <div class="sub-code" id="${ideId}_code">${escHtml(sub.code)}</div>
+        <div class="sub-terminal" id="${ideId}_output"></div>
+        <div class="sub-terminal-input-row" id="${ideId}_inputrow">
+          <input class="sub-terminal-input" id="${ideId}_inputfield" placeholder="Input…" onkeydown="if(event.key==='Enter')teacherSubmitInput('${ideId}')">
+          <button class="btn-enter" onclick="teacherSubmitInput('${ideId}')">Enter</button>
+        </div>
+      </div>
+      <div class="sub-feedback-wrap">
+        <div class="sub-fb-label">Feedback</div>
+        <textarea class="sub-fb-textarea" id="${ideId}_fb" placeholder="Type feedback for ${escHtml(sub.student_name)}…">${escHtml(sub.feedback||'')}</textarea>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn-save" onclick="saveFeedback('${sub.id}','${ideId}')">Save feedback</button>
+          <span class="fb-saved" id="${ideId}_saved">✓ Saved</span>
+        </div>
+      </div>
+    </div>`;
+  return card;
+}
+
+// ── Teacher run code ───────────────────────────────────────────────────────
+function teacherRunCode(ideId) {
+  const code   = document.getElementById(ideId + '_code').textContent;
+  const output = document.getElementById(ideId + '_output');
+  const inputRow = document.getElementById(ideId + '_inputrow');
+  const inputFld = document.getElementById(ideId + '_inputfield');
+
+  output.innerHTML = '';
+  inputRow.classList.remove('visible');
+
+  const doRun = () => {
+    function outf(text) { output.insertAdjacentText('beforeend', text); output.scrollTop = output.scrollHeight; }
+    function builtinRead(x) {
+      if (Sk.builtinFiles?.files[x] === undefined) throw "File not found: '" + x + "'";
+      return Sk.builtinFiles.files[x];
+    }
+    function handleInput(prompt) {
+      return new Promise(resolve => {
+        window['_tResolve_' + ideId] = resolve;
+        if (prompt) outf(prompt);
+        inputRow.classList.add('visible');
+        inputFld.focus();
+      });
+    }
+    Sk.configure({ output: outf, read: builtinRead, __future__: Sk.python3, inputfun: handleInput, inputfunTakesPrompt: true });
+    Sk.misceval.asyncToPromise(() => Sk.importMainWithBody('<stdin>', false, code, true))
+      .then(() => inputRow.classList.remove('visible'))
+      .catch(e => {
+        inputRow.classList.remove('visible');
+        const span = document.createElement('span');
+        span.className = 'error';
+        span.textContent = '\n' + e.toString();
+        output.appendChild(span);
+      });
+  };
+
+  if (skulptLoaded) { doRun(); return; }
+  output.textContent = 'Loading…';
+  const s1 = document.createElement('script');
+  s1.src = 'https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js';
+  s1.onload = () => {
+    const s2 = document.createElement('script');
+    s2.src = 'https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js';
+    s2.onload = () => { skulptLoaded = true; output.textContent = ''; doRun(); };
+    document.head.appendChild(s2);
+  };
+  document.head.appendChild(s1);
+}
+
+function teacherSubmitInput(ideId) {
+  const inputFld = document.getElementById(ideId + '_inputfield');
+  const inputRow = document.getElementById(ideId + '_inputrow');
+  const output   = document.getElementById(ideId + '_output');
+  const resolve  = window['_tResolve_' + ideId];
+  if (!resolve) return;
+  const val = inputFld.value;
+  output.insertAdjacentText('beforeend', val + '\n');
+  output.scrollTop = output.scrollHeight;
+  inputFld.value = '';
+  inputRow.classList.remove('visible');
+  window['_tResolve_' + ideId] = null;
+  resolve(val);
+}
+
+// ── Save feedback ──────────────────────────────────────────────────────────
+async function saveFeedback(subId, ideId) {
+  const feedback = document.getElementById(ideId + '_fb').value.trim();
+  const btn      = document.querySelector(`#subcard_${subId.replace(/-/g,'_')} .btn-save`);
+  const saved    = document.getElementById(ideId + '_saved');
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/submissions?id=eq.${subId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ feedback, feedback_at: new Date().toISOString() })
+    });
+
+    if (res.ok) {
+      if (saved) { saved.style.display = 'inline'; setTimeout(() => { saved.style.display = 'none'; }, 3000); }
+      // Update local data
+      const sub = allSubmissions.find(s => s.id === subId);
+      if (sub) sub.feedback = feedback;
+      // Update dot colour
+      const dot = document.querySelector(`#subcard_${subId.replace(/-/g,'_')} .sub-dot`);
+      if (dot) dot.className = 'sub-dot ' + (feedback ? 'done' : 'new');
+    }
+  } catch(e) { console.error(e); }
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Save feedback'; }
+}
+</script>
+</body>
+</html>

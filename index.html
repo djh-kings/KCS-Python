@@ -4,11 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KCS Python – Year 8 Adventure Game</title>
-<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
     --blue:        #0A3D62;
     --blue-dark:   #072d48;
@@ -26,46 +23,23 @@
     --font:        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --font-mono:   "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; font-size: 17px; line-height: 1.65; }
 
-  body {
-    font-family: var(--font);
-    background: var(--bg);
-    color: var(--text);
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    font-size: 17px;
-    line-height: 1.65;
-  }
-
-  /* ── Top bar ── */
-  .topbar {
-    background: var(--blue);
-    color: var(--white);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 24px;
-    height: 64px;
-    flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-  }
+  /* ── Topbar ── */
+  .topbar { background: var(--blue); color: var(--white); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 64px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
   .topbar-left { display: flex; align-items: center; gap: 14px; }
-  .topbar-logo {
-    background: var(--orange);
-    color: var(--blue);
-    font-weight: 800;
-    font-size: 14px;
-    padding: 5px 11px;
-    border-radius: 4px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
+  .topbar-logo { background: var(--orange); color: var(--blue); font-weight: 800; font-size: 14px; padding: 5px 11px; border-radius: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
   .topbar-title { font-size: 17px; font-weight: 600; color: var(--white); opacity: 0.95; }
-  .topbar-right { text-align: right; line-height: 1.4; }
-  .topbar-right .school  { font-size: 13px; color: rgba(255,255,255,0.55); display: block; }
-  .topbar-right .creator { font-size: 13px; color: rgba(255,255,255,0.75); display: block; }
-  .topbar-right .creator span { color: var(--orange); font-weight: 600; }
+  .topbar-right { display: flex; align-items: center; gap: 14px; }
+  .topbar-meta { text-align: right; line-height: 1.4; }
+  .topbar-meta .school  { font-size: 13px; color: rgba(255,255,255,0.55); display: block; }
+  .topbar-meta .creator { font-size: 13px; color: rgba(255,255,255,0.75); display: block; }
+  .topbar-meta .creator span { color: var(--orange); font-weight: 600; }
+  .student-pill { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 4px 12px 4px 8px; cursor: pointer; transition: background 0.15s; }
+  .student-pill:hover { background: rgba(255,255,255,0.18); }
+  .student-pill .avatar { width: 24px; height: 24px; border-radius: 50%; background: var(--orange); color: var(--blue); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .student-pill .name { font-size: 13px; color: var(--white); font-weight: 500; }
+  .student-pill .change { font-size: 11px; color: rgba(255,255,255,0.5); }
 
   /* ── Progress ── */
   .progress-strip { height: 4px; background: var(--blue-dark); flex-shrink: 0; }
@@ -75,243 +49,78 @@
   .layout { display: flex; flex: 1; overflow: hidden; }
 
   /* ── Sidebar ── */
-  .sidebar {
-    width: 280px;
-    flex-shrink: 0;
-    background: var(--blue);
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-  }
-  .sidebar-course-label {
-    padding: 18px 18px 8px;
-    font-size: 12px; font-weight: 700; letter-spacing: 1px;
-    text-transform: uppercase; color: rgba(255,255,255,0.4);
-  }
-  .sidebar-course-name {
-    padding: 0 18px 16px;
-    font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.9);
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-  .sidebar-section {
-    padding: 16px 18px 6px;
-    font-size: 11px; font-weight: 700; letter-spacing: 1px;
-    text-transform: uppercase; color: var(--orange);
-  }
-  .sidebar-item {
-    display: block; width: 100%; text-align: left;
-    background: none; border: none;
-    padding: 11px 18px 11px 26px;
-    font-size: 14px; color: rgba(255,255,255,0.7);
-    cursor: pointer; border-left: 3px solid transparent;
-    transition: all 0.15s ease; font-family: var(--font); line-height: 1.4;
-  }
+  .sidebar { width: 280px; flex-shrink: 0; background: var(--blue); overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-course-label { padding: 18px 18px 8px; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.4); }
+  .sidebar-course-name  { padding: 0 18px 16px; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.9); border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-section { padding: 16px 18px 6px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--orange); }
+  .sidebar-item { display: block; width: 100%; text-align: left; background: none; border: none; padding: 11px 18px 11px 26px; font-size: 14px; color: rgba(255,255,255,0.7); cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s ease; font-family: var(--font); line-height: 1.4; }
   .sidebar-item:hover { background: rgba(255,255,255,0.07); color: var(--white); }
-  .sidebar-item.active {
-    background: rgba(255,255,255,0.1); color: var(--white);
-    border-left-color: var(--orange); font-weight: 600;
-  }
+  .sidebar-item.active { background: rgba(255,255,255,0.1); color: var(--white); border-left-color: var(--orange); font-weight: 600; }
 
   /* ── Main ── */
   .main { flex: 1; overflow-y: auto; padding: 36px 44px; background: var(--bg); }
-
   .page-header { margin-bottom: 26px; padding-bottom: 18px; border-bottom: 2px solid var(--border); }
-  .page-header-meta {
-    font-size: 12px; font-weight: 700; letter-spacing: 1px;
-    text-transform: uppercase; color: var(--orange-dark); margin-bottom: 8px;
-  }
+  .page-header-meta { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--orange-dark); margin-bottom: 8px; }
   .page-header h2 { font-size: 26px; font-weight: 700; color: var(--blue); }
 
   /* ── Content card ── */
-  .content-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 32px 36px;
-    box-shadow: 0 2px 8px rgba(10,61,98,0.06);
-    margin-bottom: 24px;
-  }
+  .content-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 32px 36px; box-shadow: 0 2px 8px rgba(10,61,98,0.06); margin-bottom: 24px; }
+  .assignment-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
 
-  /* ── Assignment split layout ── */
-  .assignment-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    align-items: start;
-  }
-
-  /* ── IDE card ── */
-  .ide-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(10,61,98,0.06);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .ide-toolbar {
-    background: var(--blue);
-    padding: 10px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-  }
-  .ide-toolbar-label {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.6);
-  }
+  /* ── IDE ── */
+  .ide-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 2px 8px rgba(10,61,98,0.06); overflow: hidden; display: flex; flex-direction: column; }
+  .ide-toolbar { background: var(--blue); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .ide-toolbar-label { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.6); }
   .ide-toolbar-actions { display: flex; gap: 8px; }
-
-  .btn-run {
-    background: var(--orange);
-    color: var(--blue);
-    border: none;
-    border-radius: 4px;
-    padding: 6px 16px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: var(--font);
-    letter-spacing: 0.3px;
-    transition: background 0.15s;
-  }
+  .btn-run { background: var(--orange); color: var(--blue); border: none; border-radius: 4px; padding: 6px 16px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--font); transition: background 0.15s; }
   .btn-run:hover { background: var(--orange-dark); }
-  .btn-run:active { transform: translateY(1px); }
-
-  .btn-clear {
-    background: rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.7);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 4px;
-    padding: 6px 12px;
-    font-size: 13px;
-    cursor: pointer;
-    font-family: var(--font);
-    transition: background 0.15s;
-  }
-  .btn-clear:hover { background: rgba(255,255,255,0.18); color: var(--white); }
-
-  .ide-editor {
-    width: 100%;
-    min-height: 280px;
-    padding: 16px;
-    font-family: var(--font-mono);
-    font-size: 14px;
-    line-height: 1.6;
-    border: none;
-    border-bottom: 1px solid var(--border);
-    outline: none;
-    resize: vertical;
-    color: var(--text);
-    background: var(--code-bg);
-    tab-size: 4;
-  }
+  .btn-submit { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85); border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: all 0.15s; }
+  .btn-submit:hover { background: rgba(255,255,255,0.22); }
+  .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+  .ide-editor { width: 100%; min-height: 280px; padding: 16px; font-family: var(--font-mono); font-size: 14px; line-height: 1.6; border: none; border-bottom: 1px solid var(--border); outline: none; resize: vertical; color: var(--text); background: var(--code-bg); tab-size: 4; }
   .ide-editor:focus { background: #e8eef5; }
-
-  /* ── Terminal output ── */
-  .ide-terminal {
-    background: var(--terminal-bg);
-    min-height: 120px;
-    max-height: 300px;
-    overflow-y: auto;
-    flex-shrink: 0;
-  }
-  .ide-terminal-header {
-    padding: 7px 16px;
-    background: rgba(255,255,255,0.05);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.3);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .ide-output {
-    padding: 14px 16px;
-    font-family: var(--font-mono);
-    font-size: 13.5px;
-    line-height: 1.7;
-    color: var(--terminal-text);
-    white-space: pre-wrap;
-    word-break: break-word;
-    min-height: 80px;
-  }
-  .ide-output .error { color: #ff6b6b; }
+  .ide-terminal { background: var(--terminal-bg); min-height: 120px; max-height: 260px; overflow-y: auto; flex-shrink: 0; }
+  .ide-terminal-header { padding: 7px 16px; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+  .ide-output { padding: 14px 16px; font-family: var(--font-mono); font-size: 13.5px; line-height: 1.7; color: var(--terminal-text); white-space: pre-wrap; word-break: break-word; min-height: 60px; }
+  .ide-output .error  { color: #ff6b6b; }
   .ide-output .prompt { color: #74c0fc; }
-
-  /* ── Input row (shown when code calls input()) ── */
-  .ide-input-row {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: rgba(255,255,255,0.05);
-    border-top: 1px solid rgba(255,255,255,0.08);
-  }
+  .ide-input-row { display: none; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(255,255,255,0.05); border-top: 1px solid rgba(255,255,255,0.08); }
   .ide-input-row.visible { display: flex; }
-  .ide-input-field {
-    flex: 1;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 4px;
-    padding: 6px 10px;
-    font-family: var(--font-mono);
-    font-size: 13.5px;
-    color: var(--white);
-    outline: none;
-  }
+  .ide-input-field { flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 6px 10px; font-family: var(--font-mono); font-size: 13.5px; color: var(--white); outline: none; }
   .ide-input-field:focus { border-color: var(--orange); }
-  .btn-submit-input {
-    background: var(--orange);
-    color: var(--blue);
-    border: none;
-    border-radius: 4px;
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: var(--font);
-  }
-  .btn-submit-input:hover { background: var(--orange-dark); }
+  .btn-submit-input { background: var(--orange); color: var(--blue); border: none; border-radius: 4px; padding: 6px 14px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--font); }
 
-  /* ── Markdown content styles ── */
+  /* ── Submit confirmation bar ── */
+  .submit-bar { display: none; align-items: center; gap: 8px; padding: 9px 16px; background: #eaf3de; border-top: 1px solid #c0dd97; font-size: 13px; color: #3B6D11; }
+  .submit-bar.visible { display: flex; }
+  .submit-bar.error { background: #fdecea; border-top-color: #f5c0bc; color: #a32d2d; }
+  .submit-dot { width: 7px; height: 7px; border-radius: 50%; background: #639922; flex-shrink: 0; }
+  .submit-dot.error { background: #e24b4a; }
+
+  /* ── Feedback banner ── */
+  .feedback-banner { margin-top: 12px; background: var(--card-bg); border: 1px solid var(--border); border-left: 4px solid var(--orange); border-radius: 6px; padding: 14px 18px; }
+  .feedback-banner-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--orange-dark); margin-bottom: 6px; }
+  .feedback-banner-text { font-size: 15px; color: var(--text); line-height: 1.6; }
+
+  /* ── Name modal ── */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(7,45,72,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .modal-backdrop.hidden { display: none; }
+  .modal-card { background: var(--white); border-radius: 10px; padding: 32px 28px; width: 340px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+  .modal-logo { background: var(--blue); color: var(--orange); font-weight: 800; font-size: 14px; padding: 5px 11px; border-radius: 4px; display: inline-block; margin-bottom: 16px; }
+  .modal-title { font-size: 20px; font-weight: 700; color: var(--blue); margin-bottom: 8px; }
+  .modal-sub { font-size: 14px; color: #5a6a7a; margin-bottom: 20px; line-height: 1.5; }
+  .modal-input { width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; font-size: 16px; font-family: var(--font); outline: none; color: var(--text); }
+  .modal-input:focus { border-color: var(--blue); }
+  .modal-btn { width: 100%; background: var(--orange); color: var(--blue); border: none; border-radius: 6px; padding: 11px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: var(--font); margin-top: 12px; transition: background 0.15s; }
+  .modal-btn:hover { background: var(--orange-dark); }
+
+  /* ── Markdown ── */
   .content-body p  { margin-bottom: 18px; line-height: 1.75; font-size: 17px; }
-  .content-body h1 {
-    font-size: 22px; font-weight: 700; color: var(--blue);
-    margin: 0 0 18px; padding-bottom: 10px; border-bottom: 2px solid var(--orange);
-  }
-  .content-body h2 {
-    font-size: 18px; font-weight: 700; color: var(--blue);
-    margin: 32px 0 14px; padding-left: 12px; border-left: 3px solid var(--orange);
-  }
+  .content-body h1 { font-size: 22px; font-weight: 700; color: var(--blue); margin: 0 0 18px; padding-bottom: 10px; border-bottom: 2px solid var(--orange); }
+  .content-body h2 { font-size: 18px; font-weight: 700; color: var(--blue); margin: 32px 0 14px; padding-left: 12px; border-left: 3px solid var(--orange); }
   .content-body h3 { font-size: 16px; font-weight: 700; color: var(--blue-mid); margin: 24px 0 10px; }
-  .content-body pre {
-    background: var(--code-bg);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--blue-mid);
-    border-radius: 6px;
-    padding: 18px 20px;
-    font-family: var(--font-mono);
-    font-size: 14px;
-    line-height: 1.6;
-    overflow-x: auto;
-    margin-bottom: 20px;
-    white-space: pre;
-  }
-  .content-body code {
-    font-family: var(--font-mono); font-size: 14px;
-    background: var(--code-bg); color: var(--blue);
-    padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border);
-  }
+  .content-body pre { background: var(--code-bg); border: 1px solid var(--border); border-left: 3px solid var(--blue-mid); border-radius: 6px; padding: 18px 20px; font-family: var(--font-mono); font-size: 14px; line-height: 1.6; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+  .content-body code { font-family: var(--font-mono); font-size: 14px; background: var(--code-bg); color: var(--blue); padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border); }
   .content-body pre code { background: none; border: none; padding: 0; color: var(--text); }
   .content-body ul { padding-left: 22px; margin-bottom: 18px; }
   .content-body ul li { margin-bottom: 9px; line-height: 1.7; font-size: 17px; }
@@ -320,14 +129,32 @@
 </head>
 <body>
 
+<!-- Name modal -->
+<div class="modal-backdrop hidden" id="name-modal">
+  <div class="modal-card">
+    <div class="modal-logo">KCS</div>
+    <div class="modal-title">Welcome</div>
+    <div class="modal-sub">Enter your name so Mr Haxton can see your work when you submit.</div>
+    <input class="modal-input" id="name-input" type="text" placeholder="Your full name" maxlength="60">
+    <button class="modal-btn" id="name-btn">Start coding</button>
+  </div>
+</div>
+
 <header class="topbar">
   <div class="topbar-left">
     <span class="topbar-logo">KCS</span>
     <span class="topbar-title" id="course-title">Loading...</span>
   </div>
   <div class="topbar-right">
-    <span class="school">King's College School · Computer Science</span>
-    <span class="creator">Created by <span>Emma Hedley</span></span>
+    <div class="topbar-meta">
+      <span class="school">King's College School · Computer Science</span>
+      <span class="creator">Created by <span>Emma Hedley</span></span>
+    </div>
+    <div class="student-pill hidden" id="student-pill" onclick="changeName()">
+      <div class="avatar" id="student-avatar"></div>
+      <span class="name" id="student-name-display"></span>
+      <span class="change">change</span>
+    </div>
   </div>
 </header>
 
@@ -341,8 +168,48 @@
   <main class="main" id="main"></main>
 </div>
 
+<!-- Skulpt loaded lazily on first Run -->
 <script src="course.js"></script>
 <script>
+// ── Config ─────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://masbfjxtvehjpjjiaxlo.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_ZBkDxp7bxXu7A3Ip_Z1kcw_7-48Pq0w';
+
+// ── Student name ───────────────────────────────────────────────────────────
+let studentName = localStorage.getItem('kcs_student_name') || '';
+
+function showNameModal(onComplete) {
+  const modal = document.getElementById('name-modal');
+  const input = document.getElementById('name-input');
+  const btn   = document.getElementById('name-btn');
+  input.value = studentName;
+  modal.classList.remove('hidden');
+  setTimeout(() => input.focus(), 50);
+  btn.onclick = () => {
+    const val = input.value.trim();
+    if (!val) { input.style.borderColor = '#e24b4a'; return; }
+    studentName = val;
+    localStorage.setItem('kcs_student_name', val);
+    modal.classList.add('hidden');
+    updateStudentPill();
+    if (onComplete) onComplete();
+  };
+  input.onkeydown = e => { if (e.key === 'Enter') btn.click(); };
+}
+
+function updateStudentPill() {
+  if (!studentName) return;
+  const pill   = document.getElementById('student-pill');
+  const avatar = document.getElementById('student-avatar');
+  const nameEl = document.getElementById('student-name-display');
+  const initials = studentName.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+  avatar.textContent = initials;
+  nameEl.textContent = studentName;
+  pill.classList.remove('hidden');
+}
+
+function changeName() { showNameModal(null); }
+
 // ── Markdown renderer ──────────────────────────────────────────────────────
 function escHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -355,72 +222,97 @@ function renderMd(md) {
     codeBlocks.push(`<pre><code>${escHtml(code.trimEnd())}</code></pre>`);
     return ph;
   });
-  md = md
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^## (.+)$/gm,  '<h2>$1</h2>')
-    .replace(/^# (.+)$/gm,   '<h1>$1</h1>');
+  md = md.replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^# (.+)$/gm,'<h1>$1</h1>');
   md = md.replace(/((?:^\* .+\r?\n?)+)/gm, block => {
-    const items = block.trim().split(/\r?\n/)
-      .map(l => `<li>${l.replace(/^\* /, '')}</li>`).join('');
+    const items = block.trim().split(/\r?\n/).map(l=>`<li>${l.replace(/^\* /,'')}</li>`).join('');
     return `<ul>${items}</ul>`;
   });
-  md = md.replace(/`([^`]+)`/g, '<code>$1</code>');
+  md = md.replace(/`([^`]+)`/g,'<code>$1</code>');
   md = md.split(/\r?\n{2,}/).map(block => {
     block = block.trim();
     if (!block) return '';
-    if (/^<(h[1-3]|ul|pre)/.test(block)) return block;
-    if (/^%%CODE_BLOCK_/.test(block)) return block;
-    return `<p>${block.replace(/\r?\n/g, ' ')}</p>`;
+    if (/^<(h[1-3]|ul|pre)/.test(block) || /^%%CODE_BLOCK_/.test(block)) return block;
+    return `<p>${block.replace(/\r?\n/g,' ')}</p>`;
   }).join('\n');
-  codeBlocks.forEach((html, i) => { md = md.replace(`%%CODE_BLOCK_${i}%%`, html); });
+  codeBlocks.forEach((html,i) => { md = md.replace(`%%CODE_BLOCK_${i}%%`, html); });
   return md;
 }
 
-// ── Skulpt IDE ─────────────────────────────────────────────────────────────
-function buildIde(starterCode) {
-  const ideId = 'ide_' + Math.random().toString(36).slice(2);
+// ── Skulpt lazy loader ─────────────────────────────────────────────────────
+let skulptLoaded = false;
+let skulptLoading = false;
+let skulptQueue = [];
 
-  const html = `
+function loadSkulpt(cb) {
+  if (skulptLoaded) { cb(); return; }
+  skulptQueue.push(cb);
+  if (skulptLoading) return;
+  skulptLoading = true;
+
+  const s1 = document.createElement('script');
+  s1.src = 'https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js';
+  s1.onload = () => {
+    const s2 = document.createElement('script');
+    s2.src = 'https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js';
+    s2.onload = () => {
+      skulptLoaded = true;
+      skulptQueue.forEach(fn => fn());
+      skulptQueue = [];
+    };
+    document.head.appendChild(s2);
+  };
+  document.head.appendChild(s1);
+}
+
+// ── IDE builder ────────────────────────────────────────────────────────────
+function buildIde(ideId, starterCode, materialSlug, materialName) {
+  return `
     <div class="ide-card" id="${ideId}">
       <div class="ide-toolbar">
         <span class="ide-toolbar-label">Python Editor</span>
         <div class="ide-toolbar-actions">
-          <button class="btn-clear" onclick="clearOutput('${ideId}')">Clear</button>
-          <button class="btn-run"   onclick="runCode('${ideId}')">▶ Run</button>
+          <button class="btn-submit" id="${ideId}_submitbtn" onclick="submitCode('${ideId}','${materialSlug}','${materialName.replace(/'/g,"\\'")}')">↑ Submit</button>
+          <button class="btn-run" onclick="runCode('${ideId}')">▶ Run</button>
         </div>
       </div>
-      <textarea class="ide-editor" id="${ideId}_editor" spellcheck="false"
-        onkeydown="handleTab(event)">${escHtml(starterCode || '')}</textarea>
+      <textarea class="ide-editor" id="${ideId}_editor" spellcheck="false" onkeydown="handleTab(event)">${escHtml(starterCode||'')}</textarea>
       <div class="ide-terminal">
-        <div class="ide-terminal-header">
-          <span>Output</span>
-        </div>
+        <div class="ide-terminal-header">Output</div>
         <div class="ide-output" id="${ideId}_output"></div>
         <div class="ide-input-row" id="${ideId}_inputrow">
-          <input class="ide-input-field" id="${ideId}_inputfield"
-            placeholder="Type your input and press Enter…"
-            onkeydown="handleInputKey(event, '${ideId}')">
+          <input class="ide-input-field" id="${ideId}_inputfield" placeholder="Type your input and press Enter…" onkeydown="handleInputKey(event,'${ideId}')">
           <button class="btn-submit-input" onclick="submitInput('${ideId}')">Enter</button>
         </div>
       </div>
+      <div class="submit-bar" id="${ideId}_submitbar">
+        <div class="submit-dot" id="${ideId}_submitdot"></div>
+        <span id="${ideId}_submitmsg"></span>
+      </div>
     </div>`;
-  return html;
 }
 
-// Tab key inserts spaces rather than shifting focus
 function handleTab(e) {
-  if (e.key === 'Tab') {
-    e.preventDefault();
-    const ta = e.target;
-    const start = ta.selectionStart;
-    const end = ta.selectionEnd;
-    ta.value = ta.value.substring(0, start) + '    ' + ta.value.substring(end);
-    ta.selectionStart = ta.selectionEnd = start + 4;
-  }
+  if (e.key !== 'Tab') return;
+  e.preventDefault();
+  const ta = e.target, s = ta.selectionStart, end = ta.selectionEnd;
+  ta.value = ta.value.substring(0,s) + '    ' + ta.value.substring(end);
+  ta.selectionStart = ta.selectionEnd = s + 4;
 }
 
-// ── Skulpt runner with input() support ────────────────────────────────────
+// ── Run code ───────────────────────────────────────────────────────────────
 function runCode(ideId) {
+  const runBtn = document.querySelector(`#${ideId} .btn-run`);
+  runBtn.textContent = 'Loading…';
+  runBtn.disabled = true;
+
+  loadSkulpt(() => {
+    runBtn.textContent = '▶ Run';
+    runBtn.disabled = false;
+    _execCode(ideId);
+  });
+}
+
+function _execCode(ideId) {
   const editor   = document.getElementById(ideId + '_editor');
   const output   = document.getElementById(ideId + '_output');
   const inputRow = document.getElementById(ideId + '_inputrow');
@@ -438,53 +330,20 @@ function runCode(ideId) {
   }
 
   function builtinRead(x) {
-    if (Sk.builtinFiles?.files[x] === undefined)
-      throw "File not found: '" + x + "'";
+    if (Sk.builtinFiles?.files[x] === undefined) throw "File not found: '" + x + "'";
     return Sk.builtinFiles.files[x];
   }
 
-  // input() — show the input row, resolve promise when user submits
-  let inputResolve = null;
-
   function handleInput(prompt) {
     return new Promise(resolve => {
-      inputResolve = resolve;
+      window['_ideResolve_' + ideId] = resolve;
       if (prompt) outf(prompt);
       inputRow.classList.add('visible');
       inputFld.focus();
     });
   }
 
-  // Store resolve on the element so submit handler can reach it
-  inputFld._resolveInput = null;
-
-  Sk.configure({
-    output: outf,
-    read: builtinRead,
-    __future__: Sk.python3,
-    inputfun: handleInput,
-    inputfunTakesPrompt: true
-  });
-
-  // Keep resolve accessible for the submit button
-  window['_ideInputResolve_' + ideId] = null;
-
-  function handleInputInternal(prompt) {
-    return new Promise(resolve => {
-      window['_ideInputResolve_' + ideId] = resolve;
-      if (prompt) outf(prompt);
-      inputRow.classList.add('visible');
-      inputFld.focus();
-    });
-  }
-
-  Sk.configure({
-    output: outf,
-    read: builtinRead,
-    __future__: Sk.python3,
-    inputfun: handleInputInternal,
-    inputfunTakesPrompt: true
-  });
+  Sk.configure({ output: outf, read: builtinRead, __future__: Sk.python3, inputfun: handleInput, inputfunTakesPrompt: true });
 
   Sk.misceval.asyncToPromise(() =>
     Sk.importMainWithBody('<stdin>', false, editor.value, true)
@@ -496,7 +355,6 @@ function runCode(ideId) {
     err.className = 'error';
     err.textContent = '\n' + (e.toString() || 'Unknown error');
     output.appendChild(err);
-    output.scrollTop = output.scrollHeight;
   });
 }
 
@@ -504,31 +362,92 @@ function submitInput(ideId) {
   const inputFld = document.getElementById(ideId + '_inputfield');
   const inputRow = document.getElementById(ideId + '_inputrow');
   const output   = document.getElementById(ideId + '_output');
-  const resolve  = window['_ideInputResolve_' + ideId];
+  const resolve  = window['_ideResolve_' + ideId];
   if (!resolve) return;
-
   const val = inputFld.value;
-  // Echo the input to the terminal
   const echo = document.createElement('span');
   echo.className = 'prompt';
   echo.textContent = val + '\n';
   output.appendChild(echo);
   output.scrollTop = output.scrollHeight;
-
   inputFld.value = '';
   inputRow.classList.remove('visible');
-  window['_ideInputResolve_' + ideId] = null;
+  window['_ideResolve_' + ideId] = null;
   resolve(val);
 }
 
-function handleInputKey(e, ideId) {
-  if (e.key === 'Enter') submitInput(ideId);
+function handleInputKey(e, ideId) { if (e.key === 'Enter') submitInput(ideId); }
+
+// ── Submit to Supabase ─────────────────────────────────────────────────────
+async function submitCode(ideId, materialSlug, materialName) {
+  const doSubmit = async () => {
+    const code    = document.getElementById(ideId + '_editor').value.trim();
+    const bar     = document.getElementById(ideId + '_submitbar');
+    const dot     = document.getElementById(ideId + '_submitdot');
+    const msg     = document.getElementById(ideId + '_submitmsg');
+    const btn     = document.getElementById(ideId + '_submitbtn');
+
+    if (!code) { showSubmitBar(bar, dot, msg, false, 'Nothing to submit — write some code first.'); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/submissions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ student_name: studentName, material_slug: materialSlug, material_name: materialName, code })
+      });
+
+      if (res.ok) {
+        showSubmitBar(bar, dot, msg, true, `Submitted · Mr Haxton can now see your code`);
+      } else {
+        const err = await res.text();
+        showSubmitBar(bar, dot, msg, false, 'Submission failed — try again.');
+        console.error(err);
+      }
+    } catch(e) {
+      showSubmitBar(bar, dot, msg, false, 'No connection — check your internet and try again.');
+    }
+
+    btn.disabled = false;
+    btn.textContent = '↑ Submit';
+  };
+
+  if (!studentName) { showNameModal(doSubmit); } else { doSubmit(); }
 }
 
-function clearOutput(ideId) {
-  document.getElementById(ideId + '_output').innerHTML = '';
-  document.getElementById(ideId + '_inputrow').classList.remove('visible');
-  document.getElementById(ideId + '_inputfield').value = '';
+function showSubmitBar(bar, dot, msg, success, text) {
+  bar.className = 'submit-bar visible' + (success ? '' : ' error');
+  dot.className = 'submit-dot' + (success ? '' : ' error');
+  msg.textContent = text;
+}
+
+// ── Load feedback for a submission ────────────────────────────────────────
+async function loadFeedback(materialSlug, containerId) {
+  if (!studentName) return;
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/submissions?student_name=eq.${encodeURIComponent(studentName)}&material_slug=eq.${encodeURIComponent(materialSlug)}&feedback=not.is.null&order=submitted_at.desc&limit=1`,
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+    );
+    const rows = await res.json();
+    if (rows.length && rows[0].feedback) {
+      const container = document.getElementById(containerId);
+      if (container) {
+        container.innerHTML = `
+          <div class="feedback-banner">
+            <div class="feedback-banner-label">Feedback from Mr Haxton</div>
+            <div class="feedback-banner-text">${escHtml(rows[0].feedback)}</div>
+          </div>`;
+      }
+    }
+  } catch(e) { /* silent — feedback is a nice-to-have */ }
 }
 
 // ── Page rendering ─────────────────────────────────────────────────────────
@@ -551,16 +470,20 @@ function showPage(material, btn, index) {
   }
 
   const isAssignment = material.type === 'assignment';
-  const starterCode  = material.starterCode || '';
+  const ideId = 'ide_' + material.slug.replace(/[^a-z0-9]/g,'_');
+  const feedbackId = 'feedback_' + ideId;
 
   let bodyHtml;
   if (isAssignment) {
     bodyHtml = `
       <div class="assignment-layout">
-        <div class="content-card">
-          <div class="content-body">${renderMd(material.content || '_No content available._')}</div>
+        <div>
+          <div class="content-card">
+            <div class="content-body">${renderMd(material.content || '_No content available._')}</div>
+          </div>
+          <div id="${feedbackId}"></div>
         </div>
-        ${buildIde(starterCode)}
+        ${buildIde(ideId, material.starterCode || '', material.slug, material.name)}
       </div>`;
   } else {
     bodyHtml = `
@@ -574,8 +497,11 @@ function showPage(material, btn, index) {
       <div class="page-header-meta">${sectionName}</div>
       <h2>${material.name}</h2>
     </div>
-    ${bodyHtml}
-  `;
+    ${bodyHtml}`;
+
+  if (isAssignment && studentName) {
+    loadFeedback(material.slug, feedbackId);
+  }
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
@@ -584,8 +510,7 @@ function init() {
   document.getElementById('sidebar-course-name').textContent = COURSE_DATA.description;
 
   const sidebar = document.getElementById('sidebar');
-  let itemIndex = 0;
-  let first = null;
+  let itemIndex = 0, first = null;
 
   COURSE_DATA.lessons.forEach(lesson => {
     const sec = document.createElement('div');
@@ -606,6 +531,12 @@ function init() {
   });
 
   if (first) showPage(first.material, first.btn, first.idx);
+
+  if (studentName) {
+    updateStudentPill();
+  } else {
+    showNameModal(null);
+  }
 }
 
 init();
