@@ -1,10 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KCS Python – Year 8 Adventure Game</title>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -20,6 +21,8 @@
     --border:      #d0dbe8;
     --card-bg:     #ffffff;
     --code-bg:     #eef2f7;
+    --terminal-bg: #0d1b2a;
+    --terminal-text: #e8f4e8;
     --font:        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --font-mono:   "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   }
@@ -35,6 +38,7 @@
     line-height: 1.65;
   }
 
+  /* ── Top bar ── */
   .topbar {
     background: var(--blue);
     color: var(--white);
@@ -63,11 +67,14 @@
   .topbar-right .creator { font-size: 13px; color: rgba(255,255,255,0.75); display: block; }
   .topbar-right .creator span { color: var(--orange); font-weight: 600; }
 
+  /* ── Progress ── */
   .progress-strip { height: 4px; background: var(--blue-dark); flex-shrink: 0; }
-  .progress-fill  { height: 100%; width: 25%; background: var(--orange); transition: width 0.4s ease; }
+  .progress-fill  { height: 100%; width: 0%; background: var(--orange); transition: width 0.4s ease; }
 
+  /* ── Layout ── */
   .layout { display: flex; flex: 1; overflow: hidden; }
 
+  /* ── Sidebar ── */
   .sidebar {
     width: 280px;
     flex-shrink: 0;
@@ -105,6 +112,7 @@
     border-left-color: var(--orange); font-weight: 600;
   }
 
+  /* ── Main ── */
   .main { flex: 1; overflow-y: auto; padding: 36px 44px; background: var(--bg); }
 
   .page-header { margin-bottom: 26px; padding-bottom: 18px; border-bottom: 2px solid var(--border); }
@@ -114,14 +122,168 @@
   }
   .page-header h2 { font-size: 26px; font-weight: 700; color: var(--blue); }
 
+  /* ── Content card ── */
   .content-card {
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 32px 36px;
     box-shadow: 0 2px 8px rgba(10,61,98,0.06);
+    margin-bottom: 24px;
   }
 
+  /* ── Assignment split layout ── */
+  .assignment-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  /* ── IDE card ── */
+  .ide-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(10,61,98,0.06);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ide-toolbar {
+    background: var(--blue);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .ide-toolbar-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+  }
+  .ide-toolbar-actions { display: flex; gap: 8px; }
+
+  .btn-run {
+    background: var(--orange);
+    color: var(--blue);
+    border: none;
+    border-radius: 4px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font);
+    letter-spacing: 0.3px;
+    transition: background 0.15s;
+  }
+  .btn-run:hover { background: var(--orange-dark); }
+  .btn-run:active { transform: translateY(1px); }
+
+  .btn-clear {
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: background 0.15s;
+  }
+  .btn-clear:hover { background: rgba(255,255,255,0.18); color: var(--white); }
+
+  .ide-editor {
+    width: 100%;
+    min-height: 280px;
+    padding: 16px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.6;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    outline: none;
+    resize: vertical;
+    color: var(--text);
+    background: var(--code-bg);
+    tab-size: 4;
+  }
+  .ide-editor:focus { background: #e8eef5; }
+
+  /* ── Terminal output ── */
+  .ide-terminal {
+    background: var(--terminal-bg);
+    min-height: 120px;
+    max-height: 300px;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  .ide-terminal-header {
+    padding: 7px 16px;
+    background: rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .ide-output {
+    padding: 14px 16px;
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--terminal-text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 80px;
+  }
+  .ide-output .error { color: #ff6b6b; }
+  .ide-output .prompt { color: #74c0fc; }
+
+  /* ── Input row (shown when code calls input()) ── */
+  .ide-input-row {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.05);
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .ide-input-row.visible { display: flex; }
+  .ide-input-field {
+    flex: 1;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    color: var(--white);
+    outline: none;
+  }
+  .ide-input-field:focus { border-color: var(--orange); }
+  .btn-submit-input {
+    background: var(--orange);
+    color: var(--blue);
+    border: none;
+    border-radius: 4px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font);
+  }
+  .btn-submit-input:hover { background: var(--orange-dark); }
+
+  /* ── Markdown content styles ── */
   .content-body p  { margin-bottom: 18px; line-height: 1.75; font-size: 17px; }
   .content-body h1 {
     font-size: 22px; font-weight: 700; color: var(--blue);
@@ -150,7 +312,7 @@
     background: var(--code-bg); color: var(--blue);
     padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border);
   }
-  .content-body pre code { background: none; border: none; padding: 0; color: var(--text); font-size: 14px; }
+  .content-body pre code { background: none; border: none; padding: 0; color: var(--text); }
   .content-body ul { padding-left: 22px; margin-bottom: 18px; }
   .content-body ul li { margin-bottom: 9px; line-height: 1.7; font-size: 17px; }
   .content-body ul li::marker { color: var(--orange-dark); }
@@ -181,36 +343,28 @@
 
 <script src="course.js"></script>
 <script>
+// ── Markdown renderer ──────────────────────────────────────────────────────
 function escHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function renderMd(md) {
-  // 1. Stash fenced code blocks as placeholders so newlines are never touched
   const codeBlocks = [];
   md = md.replace(/```[\w]*\r?\n([\s\S]*?)```/g, (_, code) => {
     const ph = `%%CODE_BLOCK_${codeBlocks.length}%%`;
     codeBlocks.push(`<pre><code>${escHtml(code.trimEnd())}</code></pre>`);
     return ph;
   });
-
-  // 2. Headings
   md = md
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm,  '<h2>$1</h2>')
     .replace(/^# (.+)$/gm,   '<h1>$1</h1>');
-
-  // 3. Unordered lists
   md = md.replace(/((?:^\* .+\r?\n?)+)/gm, block => {
     const items = block.trim().split(/\r?\n/)
       .map(l => `<li>${l.replace(/^\* /, '')}</li>`).join('');
     return `<ul>${items}</ul>`;
   });
-
-  // 4. Inline code
   md = md.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-  // 5. Paragraphs — only collapse newlines inside genuine prose blocks
   md = md.split(/\r?\n{2,}/).map(block => {
     block = block.trim();
     if (!block) return '';
@@ -218,16 +372,167 @@ function renderMd(md) {
     if (/^%%CODE_BLOCK_/.test(block)) return block;
     return `<p>${block.replace(/\r?\n/g, ' ')}</p>`;
   }).join('\n');
-
-  // 6. Restore code blocks
-  codeBlocks.forEach((html, i) => {
-    md = md.replace(`%%CODE_BLOCK_${i}%%`, html);
-  });
-
+  codeBlocks.forEach((html, i) => { md = md.replace(`%%CODE_BLOCK_${i}%%`, html); });
   return md;
 }
 
-let activeBtn = null;
+// ── Skulpt IDE ─────────────────────────────────────────────────────────────
+function buildIde(starterCode) {
+  const ideId = 'ide_' + Math.random().toString(36).slice(2);
+
+  const html = `
+    <div class="ide-card" id="${ideId}">
+      <div class="ide-toolbar">
+        <span class="ide-toolbar-label">Python Editor</span>
+        <div class="ide-toolbar-actions">
+          <button class="btn-clear" onclick="clearOutput('${ideId}')">Clear</button>
+          <button class="btn-run"   onclick="runCode('${ideId}')">▶ Run</button>
+        </div>
+      </div>
+      <textarea class="ide-editor" id="${ideId}_editor" spellcheck="false"
+        onkeydown="handleTab(event)">${escHtml(starterCode || '')}</textarea>
+      <div class="ide-terminal">
+        <div class="ide-terminal-header">
+          <span>Output</span>
+        </div>
+        <div class="ide-output" id="${ideId}_output"></div>
+        <div class="ide-input-row" id="${ideId}_inputrow">
+          <input class="ide-input-field" id="${ideId}_inputfield"
+            placeholder="Type your input and press Enter…"
+            onkeydown="handleInputKey(event, '${ideId}')">
+          <button class="btn-submit-input" onclick="submitInput('${ideId}')">Enter</button>
+        </div>
+      </div>
+    </div>`;
+  return html;
+}
+
+// Tab key inserts spaces rather than shifting focus
+function handleTab(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const ta = e.target;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    ta.value = ta.value.substring(0, start) + '    ' + ta.value.substring(end);
+    ta.selectionStart = ta.selectionEnd = start + 4;
+  }
+}
+
+// ── Skulpt runner with input() support ────────────────────────────────────
+function runCode(ideId) {
+  const editor   = document.getElementById(ideId + '_editor');
+  const output   = document.getElementById(ideId + '_output');
+  const inputRow = document.getElementById(ideId + '_inputrow');
+  const inputFld = document.getElementById(ideId + '_inputfield');
+
+  output.innerHTML = '';
+  inputRow.classList.remove('visible');
+  inputFld.value = '';
+
+  function outf(text) {
+    const span = document.createElement('span');
+    span.textContent = text;
+    output.appendChild(span);
+    output.scrollTop = output.scrollHeight;
+  }
+
+  function builtinRead(x) {
+    if (Sk.builtinFiles?.files[x] === undefined)
+      throw "File not found: '" + x + "'";
+    return Sk.builtinFiles.files[x];
+  }
+
+  // input() — show the input row, resolve promise when user submits
+  let inputResolve = null;
+
+  function handleInput(prompt) {
+    return new Promise(resolve => {
+      inputResolve = resolve;
+      if (prompt) outf(prompt);
+      inputRow.classList.add('visible');
+      inputFld.focus();
+    });
+  }
+
+  // Store resolve on the element so submit handler can reach it
+  inputFld._resolveInput = null;
+
+  Sk.configure({
+    output: outf,
+    read: builtinRead,
+    __future__: Sk.python3,
+    inputfun: handleInput,
+    inputfunTakesPrompt: true
+  });
+
+  // Keep resolve accessible for the submit button
+  window['_ideInputResolve_' + ideId] = null;
+
+  function handleInputInternal(prompt) {
+    return new Promise(resolve => {
+      window['_ideInputResolve_' + ideId] = resolve;
+      if (prompt) outf(prompt);
+      inputRow.classList.add('visible');
+      inputFld.focus();
+    });
+  }
+
+  Sk.configure({
+    output: outf,
+    read: builtinRead,
+    __future__: Sk.python3,
+    inputfun: handleInputInternal,
+    inputfunTakesPrompt: true
+  });
+
+  Sk.misceval.asyncToPromise(() =>
+    Sk.importMainWithBody('<stdin>', false, editor.value, true)
+  ).then(() => {
+    inputRow.classList.remove('visible');
+  }).catch(e => {
+    inputRow.classList.remove('visible');
+    const err = document.createElement('span');
+    err.className = 'error';
+    err.textContent = '\n' + (e.toString() || 'Unknown error');
+    output.appendChild(err);
+    output.scrollTop = output.scrollHeight;
+  });
+}
+
+function submitInput(ideId) {
+  const inputFld = document.getElementById(ideId + '_inputfield');
+  const inputRow = document.getElementById(ideId + '_inputrow');
+  const output   = document.getElementById(ideId + '_output');
+  const resolve  = window['_ideInputResolve_' + ideId];
+  if (!resolve) return;
+
+  const val = inputFld.value;
+  // Echo the input to the terminal
+  const echo = document.createElement('span');
+  echo.className = 'prompt';
+  echo.textContent = val + '\n';
+  output.appendChild(echo);
+  output.scrollTop = output.scrollHeight;
+
+  inputFld.value = '';
+  inputRow.classList.remove('visible');
+  window['_ideInputResolve_' + ideId] = null;
+  resolve(val);
+}
+
+function handleInputKey(e, ideId) {
+  if (e.key === 'Enter') submitInput(ideId);
+}
+
+function clearOutput(ideId) {
+  document.getElementById(ideId + '_output').innerHTML = '';
+  document.getElementById(ideId + '_inputrow').classList.remove('visible');
+  document.getElementById(ideId + '_inputfield').value = '';
+}
+
+// ── Page rendering ─────────────────────────────────────────────────────────
+let activeBtn  = null;
 let totalItems = 0;
 
 function showPage(material, btn, index) {
@@ -245,17 +550,35 @@ function showPage(material, btn, index) {
     }
   }
 
+  const isAssignment = material.type === 'assignment';
+  const starterCode  = material.starterCode || '';
+
+  let bodyHtml;
+  if (isAssignment) {
+    bodyHtml = `
+      <div class="assignment-layout">
+        <div class="content-card">
+          <div class="content-body">${renderMd(material.content || '_No content available._')}</div>
+        </div>
+        ${buildIde(starterCode)}
+      </div>`;
+  } else {
+    bodyHtml = `
+      <div class="content-card">
+        <div class="content-body">${renderMd(material.content || '_No content available._')}</div>
+      </div>`;
+  }
+
   document.getElementById('main').innerHTML = `
     <div class="page-header">
       <div class="page-header-meta">${sectionName}</div>
       <h2>${material.name}</h2>
     </div>
-    <div class="content-card">
-      <div class="content-body">${renderMd(material.content || '_No content available._')}</div>
-    </div>
+    ${bodyHtml}
   `;
 }
 
+// ── Init ───────────────────────────────────────────────────────────────────
 function init() {
   document.getElementById('course-title').textContent = COURSE_DATA.name;
   document.getElementById('sidebar-course-name').textContent = COURSE_DATA.description;
