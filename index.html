@@ -282,7 +282,7 @@ function buildIde(ideId, starterCode, materialSlug, materialName) {
       <textarea class="ide-editor" id="${ideId}_editor" spellcheck="false" onkeydown="handleTab(event)">${escHtml(starterCode||'')}</textarea>
       <div class="ide-canvas-wrap" id="${ideId}_canvaswrap">
         <div class="ide-canvas-label">Turtle graphics</div>
-        <canvas class="ide-canvas" id="${ideId}_canvas" width="400" height="300"></canvas>
+        <canvas class="ide-canvas" id="${ideId}_canvas" width="600" height="400"></canvas>
       </div>
       <div class="ide-terminal">
         <div class="ide-terminal-header">Output</div>
@@ -371,7 +371,7 @@ function _execCode(ideId) {
     inputfun: handleInput,
     inputfunTakesPrompt: true,
     __imgPath: '',
-    TurtleGraphics: { target: canvas, width: 400, height: 300 }
+    TurtleGraphics: { target: canvas, width: 600, height: 400 }
   });
 
   Sk.misceval.asyncToPromise(() =>
