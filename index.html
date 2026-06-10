@@ -30,6 +30,7 @@
   .topbar-left { display: flex; align-items: center; gap: 14px; }
   .topbar-logo { background: var(--orange); color: var(--blue); font-weight: 800; font-size: 14px; padding: 5px 11px; border-radius: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
   .topbar-title { font-size: 17px; font-weight: 600; color: var(--white); opacity: 0.95; }
+  .topbar-version { font-size: 11px; color: rgba(255,255,255,0.35); letter-spacing: 0.5px; }
   .topbar-right { display: flex; align-items: center; gap: 14px; }
   .topbar-meta { text-align: right; line-height: 1.4; }
   .topbar-meta .school  { font-size: 13px; color: rgba(255,255,255,0.55); display: block; }
@@ -154,6 +155,7 @@
       <span class="school">King's College School · Computer Science</span>
       <span class="creator">Created by <span>Emma Hedley</span></span>
     </div>
+    <span class="topbar-version">v0.7</span>
     <div class="student-pill hidden" id="student-pill" onclick="changeName()">
       <div class="avatar" id="student-avatar"></div>
       <span class="name" id="student-name-display"></span>
@@ -336,13 +338,22 @@ function _execCode(ideId) {
   const usesTurtle = /import\s+turtle|from\s+turtle/.test(editor.value);
   if (usesTurtle) {
     canvasWrap.classList.add('visible');
-    // Clear the canvas
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   } else {
     canvasWrap.classList.remove('visible');
   }
 
+  // If turtle, defer execution until canvas is painted
+  const runNow = () => _doExec(ideId, editor, output, inputRow, inputFld, canvas, usesTurtle);
+  if (usesTurtle) {
+    requestAnimationFrame(() => requestAnimationFrame(runNow));
+  } else {
+    runNow();
+  }
+}
+
+function _doExec(ideId, editor, output, inputRow, inputFld, canvas, usesTurtle) {
   function outf(text) {
     const span = document.createElement('span');
     span.textContent = text;
@@ -364,15 +375,17 @@ function _execCode(ideId) {
     });
   }
 
-  Sk.configure({
+  const skConfig = {
     output: outf,
     read: builtinRead,
     __future__: Sk.python3,
     inputfun: handleInput,
-    inputfunTakesPrompt: true,
-    __imgPath: '',
-    TurtleGraphics: { target: canvas, width: 600, height: 400 }
-  });
+    inputfunTakesPrompt: true
+  };
+  if (usesTurtle && canvas) {
+    skConfig.TurtleGraphics = { target: canvas, width: canvas.width, height: canvas.height };
+  }
+  Sk.configure(skConfig);
 
   Sk.misceval.asyncToPromise(() =>
     Sk.importMainWithBody('<stdin>', false, editor.value, true)
