@@ -6,10 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KCS Python – Year 8 Adventure Game</title>
 <style>
-  /* ── Reset ── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* ── Design tokens ── */
   :root {
     --blue:        #0A3D62;
     --blue-dark:   #072d48;
@@ -19,7 +17,6 @@
     --white:       #ffffff;
     --bg:          #f0f4f8;
     --text:        #1a1a2e;
-    --text-muted:  #5a6a7a;
     --border:      #d0dbe8;
     --card-bg:     #ffffff;
     --code-bg:     #eef2f7;
@@ -34,11 +31,10 @@
     height: 100vh;
     display: flex;
     flex-direction: column;
-    font-size: 15px;
-    line-height: 1.6;
+    font-size: 17px;
+    line-height: 1.65;
   }
 
-  /* ── Top bar ── */
   .topbar {
     background: var(--blue);
     color: var(--white);
@@ -46,301 +42,202 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 24px;
-    height: 56px;
+    height: 64px;
     flex-shrink: 0;
     box-shadow: 0 2px 8px rgba(0,0,0,0.25);
   }
-  .topbar-left {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
+  .topbar-left { display: flex; align-items: center; gap: 14px; }
   .topbar-logo {
     background: var(--orange);
     color: var(--blue);
     font-weight: 800;
-    font-size: 13px;
-    padding: 4px 10px;
+    font-size: 14px;
+    padding: 5px 11px;
     border-radius: 4px;
     letter-spacing: 0.5px;
     text-transform: uppercase;
   }
-  .topbar-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--white);
-    opacity: 0.95;
-  }
-  .topbar-right {
-    font-size: 12px;
-    color: rgba(255,255,255,0.55);
-    letter-spacing: 0.3px;
-  }
+  .topbar-title { font-size: 17px; font-weight: 600; color: var(--white); opacity: 0.95; }
+  .topbar-right { text-align: right; line-height: 1.4; }
+  .topbar-right .school  { font-size: 13px; color: rgba(255,255,255,0.55); display: block; }
+  .topbar-right .creator { font-size: 13px; color: rgba(255,255,255,0.75); display: block; }
+  .topbar-right .creator span { color: var(--orange); font-weight: 600; }
 
-  /* ── Progress bar ── */
-  .progress-strip {
-    height: 4px;
-    background: var(--blue-dark);
-    flex-shrink: 0;
-  }
-  .progress-fill {
-    height: 100%;
-    width: 25%;
-    background: var(--orange);
-    transition: width 0.4s ease;
-  }
+  .progress-strip { height: 4px; background: var(--blue-dark); flex-shrink: 0; }
+  .progress-fill  { height: 100%; width: 25%; background: var(--orange); transition: width 0.4s ease; }
 
-  /* ── Layout ── */
-  .layout {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-  }
+  .layout { display: flex; flex: 1; overflow: hidden; }
 
-  /* ── Sidebar ── */
   .sidebar {
-    width: 260px;
+    width: 280px;
     flex-shrink: 0;
     background: var(--blue);
     overflow-y: auto;
     display: flex;
     flex-direction: column;
   }
-
   .sidebar-course-label {
-    padding: 16px 18px 10px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.4);
+    padding: 18px 18px 8px;
+    font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: rgba(255,255,255,0.4);
   }
-
   .sidebar-course-name {
     padding: 0 18px 16px;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: rgba(255,255,255,0.9);
+    font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.9);
     border-bottom: 1px solid rgba(255,255,255,0.1);
   }
-
   .sidebar-section {
-    padding: 14px 18px 6px;
-    font-size: 10.5px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--orange);
+    padding: 16px 18px 6px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--orange);
   }
-
   .sidebar-item {
-    display: block;
-    width: 100%;
-    text-align: left;
-    background: none;
-    border: none;
-    padding: 9px 18px 9px 26px;
-    font-size: 13px;
-    color: rgba(255,255,255,0.7);
-    cursor: pointer;
-    border-left: 3px solid transparent;
-    transition: all 0.15s ease;
-    font-family: var(--font);
-    line-height: 1.4;
+    display: block; width: 100%; text-align: left;
+    background: none; border: none;
+    padding: 11px 18px 11px 26px;
+    font-size: 14px; color: rgba(255,255,255,0.7);
+    cursor: pointer; border-left: 3px solid transparent;
+    transition: all 0.15s ease; font-family: var(--font); line-height: 1.4;
   }
-  .sidebar-item:hover {
-    background: rgba(255,255,255,0.07);
-    color: var(--white);
-  }
+  .sidebar-item:hover { background: rgba(255,255,255,0.07); color: var(--white); }
   .sidebar-item.active {
-    background: rgba(255,255,255,0.1);
-    color: var(--white);
-    border-left-color: var(--orange);
-    font-weight: 600;
+    background: rgba(255,255,255,0.1); color: var(--white);
+    border-left-color: var(--orange); font-weight: 600;
   }
 
-  /* ── Main content ── */
-  .main {
-    flex: 1;
-    overflow-y: auto;
-    padding: 32px 40px;
-    background: var(--bg);
-  }
+  .main { flex: 1; overflow-y: auto; padding: 36px 44px; background: var(--bg); }
 
-  /* Page header */
-  .page-header {
-    margin-bottom: 24px;
-    padding-bottom: 16px;
-    border-bottom: 2px solid var(--border);
-  }
+  .page-header { margin-bottom: 26px; padding-bottom: 18px; border-bottom: 2px solid var(--border); }
   .page-header-meta {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--orange-dark);
-    margin-bottom: 6px;
+    font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--orange-dark); margin-bottom: 8px;
   }
-  .page-header h2 {
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--blue);
-  }
+  .page-header h2 { font-size: 26px; font-weight: 700; color: var(--blue); }
 
-  /* Content card */
   .content-card {
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 28px 32px;
+    padding: 32px 36px;
     box-shadow: 0 2px 8px rgba(10,61,98,0.06);
   }
 
-  /* ── Markdown content styles ── */
-  .content-body p {
-    margin-bottom: 16px;
-    color: var(--text);
-    line-height: 1.7;
-  }
+  .content-body p  { margin-bottom: 18px; line-height: 1.75; font-size: 17px; }
   .content-body h1 {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--blue);
-    margin: 0 0 16px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid var(--orange);
+    font-size: 22px; font-weight: 700; color: var(--blue);
+    margin: 0 0 18px; padding-bottom: 10px; border-bottom: 2px solid var(--orange);
   }
   .content-body h2 {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--blue);
-    margin: 28px 0 12px;
-    padding-left: 10px;
-    border-left: 3px solid var(--orange);
+    font-size: 18px; font-weight: 700; color: var(--blue);
+    margin: 32px 0 14px; padding-left: 12px; border-left: 3px solid var(--orange);
   }
-  .content-body h3 {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--blue-mid);
-    margin: 20px 0 8px;
-  }
+  .content-body h3 { font-size: 16px; font-weight: 700; color: var(--blue-mid); margin: 24px 0 10px; }
   .content-body pre {
     background: var(--code-bg);
     border: 1px solid var(--border);
     border-left: 3px solid var(--blue-mid);
     border-radius: 6px;
-    padding: 16px 18px;
+    padding: 18px 20px;
     font-family: var(--font-mono);
-    font-size: 13px;
-    line-height: 1.55;
+    font-size: 14px;
+    line-height: 1.6;
     overflow-x: auto;
-    margin-bottom: 18px;
+    margin-bottom: 20px;
+    white-space: pre;
   }
   .content-body code {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    background: var(--code-bg);
-    color: var(--blue);
-    padding: 2px 6px;
-    border-radius: 3px;
-    border: 1px solid var(--border);
+    font-family: var(--font-mono); font-size: 14px;
+    background: var(--code-bg); color: var(--blue);
+    padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border);
   }
-  .content-body pre code {
-    background: none;
-    border: none;
-    padding: 0;
-    color: var(--text);
-  }
-  .content-body ul {
-    padding-left: 20px;
-    margin-bottom: 16px;
-  }
-  .content-body ul li {
-    margin-bottom: 7px;
-    line-height: 1.65;
-    color: var(--text);
-  }
-  .content-body ul li::marker {
-    color: var(--orange-dark);
-  }
+  .content-body pre code { background: none; border: none; padding: 0; color: var(--text); font-size: 14px; }
+  .content-body ul { padding-left: 22px; margin-bottom: 18px; }
+  .content-body ul li { margin-bottom: 9px; line-height: 1.7; font-size: 17px; }
+  .content-body ul li::marker { color: var(--orange-dark); }
 </style>
 </head>
 <body>
 
-<!-- Top bar -->
 <header class="topbar">
   <div class="topbar-left">
     <span class="topbar-logo">KCS</span>
     <span class="topbar-title" id="course-title">Loading...</span>
   </div>
-  <div class="topbar-right">King's College School · Computer Science</div>
+  <div class="topbar-right">
+    <span class="school">King's College School · Computer Science</span>
+    <span class="creator">Created by <span>Emma Hedley</span></span>
+  </div>
 </header>
 
-<!-- Progress strip -->
-<div class="progress-strip">
-  <div class="progress-fill" id="progress-fill"></div>
-</div>
+<div class="progress-strip"><div class="progress-fill" id="progress-fill"></div></div>
 
-<!-- Layout -->
 <div class="layout">
-
-  <!-- Sidebar -->
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-course-label">Course</div>
     <div class="sidebar-course-name" id="sidebar-course-name"></div>
   </nav>
-
-  <!-- Main -->
   <main class="main" id="main"></main>
-
 </div>
 
 <script src="course.js"></script>
 <script>
-// ── Markdown → HTML ────────────────────────────────────────────────────────
 function escHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function renderMd(md) {
-  let html = md.replace(/```[\w]*\r?\n([\s\S]*?)```/g, (_, code) =>
-    `<pre><code>${escHtml(code.trimEnd())}</code></pre>`);
+  // 1. Stash fenced code blocks as placeholders so newlines are never touched
+  const codeBlocks = [];
+  md = md.replace(/```[\w]*\r?\n([\s\S]*?)```/g, (_, code) => {
+    const ph = `%%CODE_BLOCK_${codeBlocks.length}%%`;
+    codeBlocks.push(`<pre><code>${escHtml(code.trimEnd())}</code></pre>`);
+    return ph;
+  });
 
-  html = html
+  // 2. Headings
+  md = md
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm,  '<h2>$1</h2>')
-    .replace(/^# (.+)$/gm,   '<h1>$1</h1>')
-    .replace(/((?:^\* .+\r?\n?)+)/gm, block => {
-      const items = block.trim().split(/\r?\n/)
-        .map(l => `<li>${l.replace(/^\* /, '')}</li>`).join('');
-      return `<ul>${items}</ul>`;
-    })
-    .replace(/`([^`]+)`/g, '<code>$1</code>');
+    .replace(/^# (.+)$/gm,   '<h1>$1</h1>');
 
-  return html.split(/\r?\n{2,}/).map(block => {
+  // 3. Unordered lists
+  md = md.replace(/((?:^\* .+\r?\n?)+)/gm, block => {
+    const items = block.trim().split(/\r?\n/)
+      .map(l => `<li>${l.replace(/^\* /, '')}</li>`).join('');
+    return `<ul>${items}</ul>`;
+  });
+
+  // 4. Inline code
+  md = md.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  // 5. Paragraphs — only collapse newlines inside genuine prose blocks
+  md = md.split(/\r?\n{2,}/).map(block => {
     block = block.trim();
     if (!block) return '';
     if (/^<(h[1-3]|ul|pre)/.test(block)) return block;
-    return `<p>${block.replace(/\r?\n/g,' ')}</p>`;
+    if (/^%%CODE_BLOCK_/.test(block)) return block;
+    return `<p>${block.replace(/\r?\n/g, ' ')}</p>`;
   }).join('\n');
+
+  // 6. Restore code blocks
+  codeBlocks.forEach((html, i) => {
+    md = md.replace(`%%CODE_BLOCK_${i}%%`, html);
+  });
+
+  return md;
 }
 
-// ── State ──────────────────────────────────────────────────────────────────
 let activeBtn = null;
 let totalItems = 0;
-let currentIndex = 0;
 
 function showPage(material, btn, index) {
   if (activeBtn) activeBtn.classList.remove('active');
   btn.classList.add('active');
   activeBtn = btn;
-  currentIndex = index;
 
-  // Update progress bar
   const pct = totalItems > 1 ? (index / (totalItems - 1)) * 100 : 0;
   document.getElementById('progress-fill').style.width = pct + '%';
 
-  // Determine section label for this material
   let sectionName = '';
   for (const lesson of COURSE_DATA.lessons) {
     for (const m of lesson.materials) {
@@ -359,7 +256,6 @@ function showPage(material, btn, index) {
   `;
 }
 
-// ── Build sidebar from COURSE_DATA ─────────────────────────────────────────
 function init() {
   document.getElementById('course-title').textContent = COURSE_DATA.name;
   document.getElementById('sidebar-course-name').textContent = COURSE_DATA.description;
