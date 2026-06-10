@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AAA – Year 8 Adventure Game</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 15px;
+    color: #333;
+    background: #fff;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .progress-bar { height: 6px; background: #e0e0e0; width: 100%; flex-shrink: 0; }
+  .progress-bar-fill { height: 100%; width: 28%; background: #4caf50; }
+
+  .header { padding: 14px 20px 10px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; }
+  .header h1 { font-size: 20px; font-weight: 700; color: #222; margin-bottom: 2px; }
+  .header .byline { font-size: 13px; color: #555; }
+  .header .byline strong { font-weight: 600; }
+
+  .layout { display: flex; flex: 1; overflow: hidden; }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    border-right: 1px solid #e0e0e0;
+    overflow-y: auto;
+    background: #f9f9f9;
+  }
+
+  .sidebar-course-title {
+    padding: 14px 16px;
+    font-size: 13.5px;
+    color: #333;
+    border-bottom: 1px solid #e0e0e0;
+    background: #fff;
+  }
+
+  .sidebar-section-title {
+    padding: 12px 16px 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #222;
+  }
+
+  .sidebar-item {
+    display: block;
+    padding: 8px 16px 8px 24px;
+    font-size: 13px;
+    color: #1a73e8;
+    text-decoration: none;
+    cursor: pointer;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+  }
+  .sidebar-item:hover { text-decoration: underline; }
+  .sidebar-item.active {
+    background: #1a73e8;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    padding-left: 16px;
+  }
+
+  .main { flex: 1; overflow-y: auto; padding: 30px 40px; }
+
+  .content-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .content-header h2 { font-size: 17px; font-weight: 600; color: #444; }
+
+  .content-body p  { margin-bottom: 16px; line-height: 1.65; font-size: 15px; }
+  .content-body h1 { font-size: 20px; font-weight: 700; margin: 24px 0 12px; color: #222; }
+  .content-body h2 { font-size: 16px; font-weight: 700; margin: 24px 0 10px; color: #222; }
+  .content-body h3 { font-size: 15px; font-weight: 700; margin: 20px 0 8px; color: #333; }
+  .content-body pre {
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 12px 14px;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin-bottom: 14px;
+  }
+  .content-body code {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 13px;
+    background: #f0f0f0;
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+  .content-body pre code { background: none; padding: 0; }
+  .content-body ul { padding-left: 20px; margin-bottom: 14px; }
+  .content-body ul li { margin-bottom: 6px; line-height: 1.6; font-size: 15px; }
+</style>
+</head>
+<body>
+
+<div class="progress-bar"><div class="progress-bar-fill"></div></div>
+
+<div class="header">
+  <h1 id="course-title"></h1>
+  <div class="byline">Created by <strong>Emma Hedley</strong></div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-course-title" id="sidebar-course-title"></div>
+  </nav>
+  <main class="main" id="main-content"></main>
+</div>
+
+<script src="course.js"></script>
+<script>
+// ── Markdown → HTML ────────────────────────────────────────────────────────
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderMd(md) {
+  // Fenced code blocks first
+  let html = md.replace(/```[\w]*\r?\n([\s\S]*?)```/g, (_, code) =>
+    `<pre><code>${escHtml(code.trimEnd())}</code></pre>`);
+
+  html = html
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,  '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm,   '<h1>$1</h1>')
+    .replace(/((?:^\* .+\r?\n?)+)/gm, block => {
+      const items = block.trim().split(/\r?\n/)
+        .map(l => `<li>${l.replace(/^\* /, '')}</li>`).join('');
+      return `<ul>${items}</ul>`;
+    })
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  return html.split(/\r?\n{2,}/).map(block => {
+    block = block.trim();
+    if (!block) return '';
+    if (/^<(h[1-3]|ul|pre)/.test(block)) return block;
+    return `<p>${block.replace(/\r?\n/g, ' ')}</p>`;
+  }).join('\n');
+}
+
+// ── Build UI from COURSE_DATA (loaded via course.js) ──────────────────────
+let activeBtn = null;
+
+function showPage(material, btn) {
+  if (activeBtn) activeBtn.classList.remove('active');
+  btn.classList.add('active');
+  activeBtn = btn;
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="content-header">
+      <span>📄</span>
+      <h2>${material.name}</h2>
+    </div>
+    <div class="content-body">${renderMd(material.content || '_No content found._')}</div>
+  `;
+}
+
+function init() {
+  document.getElementById('course-title').textContent = COURSE_DATA.name;
+  document.getElementById('sidebar-course-title').textContent = COURSE_DATA.description;
+
+  const sidebar = document.getElementById('sidebar');
+  let first = null;
+
+  COURSE_DATA.lessons.forEach(lesson => {
+    const sec = document.createElement('div');
+    sec.className = 'sidebar-section-title';
+    sec.textContent = lesson.name;
+    sidebar.appendChild(sec);
+
+    lesson.materials.forEach(material => {
+      const btn = document.createElement('button');
+      btn.className = 'sidebar-item';
+      btn.textContent = material.name;
+      btn.addEventListener('click', () => showPage(material, btn));
+      sidebar.appendChild(btn);
+      if (!first) first = { material, btn };
+    });
+  });
+
+  if (first) showPage(first.material, first.btn);
+}
+
+init();
+</script>
+</body>
+</html>
