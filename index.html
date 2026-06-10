@@ -284,7 +284,7 @@ function buildIde(ideId, starterCode, materialSlug, materialName) {
       <textarea class="ide-editor" id="${ideId}_editor" spellcheck="false" onkeydown="handleTab(event)">${escHtml(starterCode||'')}</textarea>
       <div class="ide-canvas-wrap" id="${ideId}_canvaswrap">
         <div class="ide-canvas-label">Turtle graphics</div>
-        <div id="${ideId}_turtlediv" style="display:inline-block;border:1px solid var(--border);border-radius:4px;overflow:hidden;max-width:100%;"><canvas class="ide-canvas" id="${ideId}_canvas" width="600" height="400"></canvas></div>
+        <div id="${ideId}_turtlediv" style="display:inline-block;border:1px solid var(--border);border-radius:4px;overflow:hidden;max-width:100%;background:#fff;"></div>
       </div>
       <div class="ide-terminal">
         <div class="ide-terminal-header">Output</div>
